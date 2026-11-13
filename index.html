@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>포토 타임라인 - 인물별·시간순 사진 정리</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-light: #eef2ff;
+      --accent: #0ea5e9;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 14px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow: 0 4px 12px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Pretendard", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    .brand p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* 버튼 스타일 공통 (모바일 터치 최적화) */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 14px;
+      min-height: 42px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      user-select: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: #ffffff;
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-secondary:hover {
+      background: #f1f5f9;
+    }
+
+    .btn-accent {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      color: #166534;
+    }
+    .btn-accent:hover {
+      background: #dcfce7;
+    }
+
+    .btn-group-btn {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      color: #1d4ed8;
+    }
+    .btn-group-btn:hover {
+      background: #dbeafe;
+    }
+
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* 상단 배너: 소규모 그룹 사진 모으기 예시 알림 */
+    .group-banner {
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+      border: 1px solid #c7d2fe;
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .group-banner-text {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .group-banner-text .icon {
+      font-size: 24px;
+    }
+
+    .group-banner-text h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #3730a3;
+    }
+
+    .group-banner-text p {
+      font-size: 0.82rem;
+      color: #4338ca;
+    }
+
+    /* 필터 및 검색 컨트롤 패널 */
+    .controls-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .search-input-wrapper {
+      flex: 1;
+      min-width: 220px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 44px;
+      padding: 0 14px 0 38px;
+      font-size: 0.92rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+      background: #f8fafc;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+      background: #ffffff;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    .sort-control {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sort-btn {
+      height: 44px;
+      padding: 0 14px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      color: var(--text-muted);
+    }
+
+    .sort-btn.active {
+      background: var(--primary-light);
+      border-color: #c7d2fe;
+      color: var(--primary);
+    }
+
+    /* 인물 태그 칩 필터 목록 */
+    .people-filter-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .people-filter-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .chips-container {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      flex: 1;
+      scrollbar-width: thin;
+    }
+
+    .chip {
+      height: 36px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #f1f5f9;
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .chip:hover {
+      background: #e2e8f0;
+    }
+
+    .chip.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+    }
+
+    .chip-count {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 0.75rem;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.08);
+    }
+
+    .chip.active .chip-count {
+      background: rgba(255,255,255,0.25);
+      color: #ffffff;
+    }
+
+    /* 상태 및 다운로드 바 */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .status-text {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .status-text strong {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .export-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* 타임라인 그룹 및 카드 */
+    .timeline-container {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .timeline-group {
+      position: relative;
+    }
+
+    .timeline-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .timeline-date-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #e2e8f0;
+      color: #334155;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .timeline-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 16px;
+    }
+
+    .photo-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .photo-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+    }
+
+    .photo-img-wrap {
+      width: 100%;
+      height: 190px;
+      background: #f1f5f9;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .photo-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s;
+    }
+
+    .photo-card:hover .photo-img-wrap img {
+      transform: scale(1.03);
+    }
+
+    .photo-date-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(15, 23, 42, 0.75);
+      color: #ffffff;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      backdrop-filter: blur(4px);
+    }
+
+    .photo-card-body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .photo-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .photo-memo {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      flex: 1;
+      line-height: 1.4;
+    }
+
+    .photo-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .photo-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+
+    .person-tag {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--primary-light);
+      color: var(--primary);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .person-tag:hover {
+      background: #c7d2fe;
+    }
+
+    .btn-delete-card {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .btn-delete-card:hover {
+      color: #ef4444;
+      background: #fef2f2;
+    }
+
+    /* 검색 결과 없을 때 */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--card-bg);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .empty-state p {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+
+    /* 모달 공통 스타일 */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal {
+      background: #ffffff;
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: modalFadeIn 0.2s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .form-help {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .form-control {
+      width: 100%;
+      height: 44px;
+      padding: 0 12px;
+      font-size: 0.92rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      background: #ffffff;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+    }
+
+    textarea.form-control {
+      height: 80px;
+      padding: 10px 12px;
+      resize: vertical;
+    }
+
+    .file-drop-zone {
+      border: 2px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      background: #f8fafc;
+      transition: all 0.2s;
+    }
+
+    .file-drop-zone:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .preview-box {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .preview-thumb {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+    }
+
+    .modal-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: #f8fafc;
+      border-bottom-left-radius: var(--radius);
+      border-bottom-right-radius: var(--radius);
+    }
+
+    /* 알림 토스트 */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1e293b;
+      color: #ffffff;
+      padding: 12px 22px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      z-index: 200;
+      transition: transform 0.25s ease-out;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* 모바일 반응형 조절 */
+    @media (max-width: 640px) {
+      .header-inner {
+        padding: 12px;
+      }
+      .brand h1 {
+        font-size: 1.05rem;
+      }
+      .header-actions {
+        width: 100%;
+      }
+      .header-actions .btn {
+        flex: 1;
+        font-size: 0.82rem;
+        padding: 8px 10px;
+      }
+      .group-banner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .group-banner .btn {
+        width: 100%;
+      }
+      .photo-grid {
+        grid-template-columns: 1fr;
+      }
+      .modal {
+        max-height: 95vh;
+        border-radius: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 헤더 영역 -->
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">📷</div>
+        <div>
+          <h1>포토 타임라인</h1>
+          <p>인물별·시간순 사진 정리 도구</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" onclick="openAddModal()">
+          <span>➕ 사진 추가</span>
+        </button>
+        <button class="btn btn-group-btn" onclick="openGroupInviteModal()">
+          <span>👥 사진 수집 예시</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- 소규모 그룹 사진 모으기 예시 안내 배너 -->
+    <div class="group-banner">
+      <div class="group-banner-text">
+        <span class="icon">💡</span>
+        <div>
+          <h3>가족/지인과 함께 사진 모으기 (입력 화면 예시)</h3>
+          <p>지인에게 사진 전송 폼을 보내는 화면 예시입니다. 실시간 공동 저장은 다음 단계에 제공됩니다.</p>
+        </div>
+      </div>
+      <button class="btn btn-secondary" onclick="openGroupInviteModal()">
+        화면 예시 보기 &gt;
+      </button>
+    </div>
+
+    <!-- 검색 및 필터 패널 -->
+    <div class="controls-panel">
+      <!-- 검색 및 정렬 행 -->
+      <div class="search-row">
+        <div class="search-input-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" class="search-input" placeholder="인물 이름 또는 사진 설명 검색..." oninput="handleSearch(this.value)">
+        </div>
+
+        <div class="sort-control">
+          <button id="sortOldestBtn" class="sort-btn active" onclick="setSortOrder('asc')" title="오래된 날짜부터 (성장/과거순)">
+            <span>⏳ 과거순 (오래된 순)</span>
+          </button>
+          <button id="sortNewestBtn" class="sort-btn" onclick="setSortOrder('desc')" title="최근 날짜부터">
+            <span>⌛ 최신순</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 인물 칩 필터 -->
+      <div class="people-filter-section">
+        <span class="people-filter-label">인물 필터:</span>
+        <div class="chips-container" id="peopleChipsContainer">
+          <!-- JS로 동적 렌더링 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 상태 및 다운로드 액션 바 -->
+    <div class="status-bar">
+      <div class="status-text" id="statusSummary">
+        사진 <strong>5</strong>장 탐색 중
+      </div>
+      <div class="export-actions">
+        <button class="btn btn-secondary" onclick="exportDataJson()">
+          <span>💾 결과 목록 (JSON)</span>
+        </button>
+        <button class="btn btn-accent" onclick="downloadSelectedZip()">
+          <span>📦 선택 사진 다운로드 (.zip)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 타임라인 사진 갤러리 영역 -->
+    <div id="timelineContainer" class="timeline-container">
+      <!-- JS로 동적 렌더링 -->
+    </div>
+
+  </div>
+
+  <!-- [모달 1] 새 사진 추가 모달 -->
+  <div id="addModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>새 사진 등록</h2>
+        <button class="modal-close-btn" onclick="closeAddModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">사진 파일 선택</label>
+          <div class="file-drop-zone" onclick="document.getElementById('fileInput').click()">
+            <div style="font-size: 28px; margin-bottom: 6px;">📂</div>
+            <p style="font-weight: 600; font-size: 0.9rem;">클릭하여 사진을 선택하세요</p>
+            <p class="form-help">여러 장을 동시에 선택할 수도 있습니다.</p>
+          </div>
+          <input type="file" id="fileInput" accept="image/*" multiple style="display: none;" onchange="handleFileSelect(event)">
+          <div id="previewArea" class="preview-box"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">사진 제목</label>
+          <input type="text" id="newPhotoTitle" class="form-control" placeholder="예: 가족 저녁 식사, 공원 산책">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">촬영 일자</label>
+          <input type="date" id="newPhotoDate" class="form-control">
+          <p class="form-help">파일의 저장 날짜를 기준으로 자동 설정되며, 변경 가능합니다.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">인물 태그 (쉼표로 구분)</label>
+          <input type="text" id="newPhotoPeople" class="form-control" placeholder="예: 민우, 서연, 지호">
+          <p class="form-help">가상 인물 이름을 쉼표(,)로 구분해 여러 명 적어주세요.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">메모 / 설명</label>
+          <textarea id="newPhotoMemo" class="form-control" placeholder="사진에 담긴 소중한 기억을 남겨보세요."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAddModal()">취소</button>
+        <button class="btn btn-primary" onclick="submitNewPhoto()">등록하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- [모달 2] 가족·지인 사진 수집 화면 (예시) -->
+  <div id="groupInviteModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>👥 소규모 그룹 사진 모으기 (입력 화면 예시)</h2>
+        <button class="modal-close-btn" onclick="closeGroupInviteModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: #f1f5f9; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+          <p style="font-size: 0.84rem; color: #334155;">
+            <strong>📌 안내:</strong> 이 화면은 가족이나 친구들에게 사진을 요청할 때 제공되는 <strong>가상의 모바일 업로드 페이지 예시</strong>입니다. (실시간 서버 저장은 다음 업데이트 과제로 진행됩니다.)
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">가상 초대 링크</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="form-control" readonly value="https://family-album.local/invite/meet-2024" style="background: #f8fafc; font-size: 0.85rem;">
+            <button class="btn btn-secondary" onclick="copyMockLink()">복사</button>
+          </div>
+        </div>
+
+        <hr style="border: none; border-top: 1px dashed var(--border); margin: 20px 0;">
+
+        <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; color: var(--primary);">
+          [지인이 보게 될 사진 업로드 화면 예시]
+        </h3>
+
+        <div class="form-group">
+          <label class="form-label">보내는 사람 (지인 이름)</label>
+          <input type="text" id="guestName" class="form-control" placeholder="예: 삼촌, 이모, 친구 영희" value="삼촌">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">사진에 나온 사람</label>
+          <input type="text" id="guestPeople" class="form-control" placeholder="예: 민우, 서연" value="민우">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">전송할 사진 선택</label>
+          <div class="file-drop-zone" style="padding: 16px;">
+            <p style="font-size: 0.88rem; font-weight: 600;">📷 사진 파일 올리기</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">남길 한마디 메시지</label>
+          <textarea class="form-control" placeholder="즐거웠던 추억 메시지를 적어주세요!">작년 여름에 같이 바닷가 갔을 때 찍은 사진 보내요~!</textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeGroupInviteModal()">닫기</button>
+        <button class="btn btn-primary" onclick="simulateGuestSubmit()">사진 전송해보기 (예시 동작)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- [모달 3] 사진 상세 확대 뷰어 -->
+  <div id="viewModal" class="modal-backdrop">
+    <div class="modal" style="max-width: 680px;">
+      <div class="modal-header">
+        <h2 id="viewModalTitle">사진 상세보기</h2>
+        <button class="modal-close-btn" onclick="closeViewModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 0;">
+        <div style="background: #0f172a; display: flex; align-items: center; justify-content: center; max-height: 400px; overflow: hidden;">
+          <img id="viewModalImg" src="" alt="" style="max-width: 100%; max-height: 400px; object-fit: contain;">
+        </div>
+        <div style="padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span id="viewModalDate" style="font-size: 0.88rem; font-weight: 700; color: var(--primary);"></span>
+            <div id="viewModalTags" style="display: flex; gap: 6px;"></div>
+          </div>
+          <p id="viewModalMemo" style="font-size: 0.95rem; color: #334155; line-height: 1.6;"></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeViewModal()">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 알림 토스트 -->
+  <div id="toast" class="toast">알림 메시지</div>
+
+  <script>
+    /* ==========================================================================
+       1. 가상 데이터 5건 (독립 SVG Data URL 플레이스홀더 포함)
+       - 실제 인물, 연락처, 학생 정보 배제 (가상 이름: 민우, 서연, 지호, 도윤, 하은)
+       ========================================================================== */
+    function createSvgDataUrl(svgString) {
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString.trim());
+    }
+
+    const svgPhoto1 = createSvgDataUrl(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' width='100%' height='100%'>
+        <defs>
+          <linearGradient id='sky1' x1='0' y1='0' x2='0' y2='1'>
+            <stop offset='0%' stop-color='#ea580c'/>
+            <stop offset='50%' stop-color='#fbbf24'/>
+            <stop offset='100%' stop-color='#38bdf8'/>
+          </linearGradient>
+        </defs>
+        <rect width='600' height='400' fill='url(#sky1)'/>
+        <circle cx='300' cy='180' r='60' fill='#ef4444'/>
+        <path d='M0 310 Q 150 250 300 290 T 600 270 L 600 400 L 0 400 Z' fill='#1e293b'/>
+        <path d='M0 340 Q 200 310 400 340 T 600 320 L 600 400 L 0 400 Z' fill='#0f172a'/>
+        <text x='300' y='375' text-anchor='middle' fill='#ffffff' font-family='sans-serif' font-size='18' font-weight='bold'>2024 새해 첫 일출 여행</text>
+      </svg>
+    `);
+
+    const svgPhoto2 = createSvgDataUrl(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' width='100%' height='100%'>
+        <defs>
+          <linearGradient id='sky2' x1='0' y1='0' x2='0' y2='1'>
+            <stop offset='0%' stop-color='#bae6fd'/>
+            <stop offset='100%' stop-color='#fbcfe8'/>
+          </linearGradient>
+        </defs>
+        <rect width='600' height='400' fill='url(#sky2)'/>
+        <circle cx='150' cy='160' r='75' fill='#f472b6' opacity='0.85'/>
+        <circle cx='210' cy='130' r='65' fill='#fb7185' opacity='0.85'/>
+        <circle cx='260' cy='170' r='70' fill='#f43f5e' opacity='0.8'/>
+        <rect x='195' y='180' width='25' height='150' fill='#78350f' rx='4'/>
+        <path d='M0 330 Q 300 310 600 330 L 600 400 L 0 400 Z' fill='#4ade80'/>
+        <rect x='340' y='315' width='140' height='55' fill='#38bdf8' rx='8'/>
+        <text x='410' y='348' text-anchor='middle' fill='#ffffff' font-family='sans-serif' font-size='15' font-weight='bold'>돗자리 소풍</text>
+        <text x='300' y='55' text-anchor='middle' fill='#831843' font-family='sans-serif' font-size='20' font-weight='bold'>봄맞이 벚꽃 나들이</text>
+      </svg>
+    `);
+
+    const svgPhoto3 = createSvgDataUrl(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' width='100%' height='100%'>
+        <defs>
+          <linearGradient id='sky3' x1='0' y1='0' x2='0' y2='1'>
+            <stop offset='0%' stop-color='#38bdf8'/>
+            <stop offset='100%' stop-color='#e0f2fe'/>
+          </linearGradient>
+        </defs>
+        <rect width='600' height='400' fill='url(#sky3)'/>
+        <circle cx='500' cy='85' r='40' fill='#facc15'/>
+        <path d='M0 240 Q 150 220 300 240 T 600 230 L 600 320 L 0 320 Z' fill='#0284c7'/>
+        <path d='M0 270 Q 200 250 400 270 T 600 260 L 600 320 L 0 320 Z' fill='#0369a1'/>
+        <rect x='0' y='310' width='600' height='90' fill='#fde68a'/>
+        <polygon points='190,305 270,195 350,305' fill='#f97316'/>
+        <polygon points='270,195 350,305 320,305 260,225' fill='#ea580c'/>
+        <text x='300' y='375' text-anchor='middle' fill='#92400e' font-family='sans-serif' font-size='18' font-weight='bold'>초여름 바닷가 캠핑</text>
+      </svg>
+    `);
+
+    const svgPhoto4 = createSvgDataUrl(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' width='100%' height='100%'>
+        <defs>
+          <linearGradient id='sky4' x1='0' y1='0' x2='0' y2='1'>
+            <stop offset='0%' stop-color='#fed7aa'/>
+            <stop offset='100%' stop-color='#ffedd5'/>
+          </linearGradient>
+        </defs>
+        <rect width='600' height='400' fill='url(#sky4)'/>
+        <circle cx='140' cy='180' r='65' fill='#dc2626' opacity='0.9'/>
+        <circle cx='215' cy='150' r='75' fill='#ea580c' opacity='0.9'/>
+        <circle cx='450' cy='170' r='70' fill='#d97706' opacity='0.9'/>
+        <circle cx='375' cy='190' r='60' fill='#b45309' opacity='0.9'/>
+        <path d='M0 290 Q 300 260 600 290 L 600 400 L 0 400 Z' fill='#78350f'/>
+        <polygon points='260,400 340,400 310,285 290,285' fill='#a16207'/>
+        <text x='300' y='55' text-anchor='middle' fill='#7c2d12' font-family='sans-serif' font-size='20' font-weight='bold'>가을 숲길 단풍 산책</text>
+      </svg>
+    `);
+
+    const svgPhoto5 = createSvgDataUrl(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' width='100%' height='100%'>
+        <defs>
+          <linearGradient id='sky5' x1='0' y1='0' x2='0' y2='1'>
+            <stop offset='0%' stop-color='#1e1b4b'/>
+            <stop offset='100%' stop-color='#312e81'/>
+          </linearGradient>
+        </defs>
+        <rect width='600' height='400' fill='url(#sky5)'/>
+        <circle cx='80' cy='60' r='4' fill='#ffffff'/>
+        <circle cx='180' cy='95' r='3' fill='#ffffff'/>
+        <circle cx='420' cy='65' r='5' fill='#ffffff'/>
+        <circle cx='510' cy='120' r='3' fill='#ffffff'/>
+        <path d='M0 280 Q 250 230 600 270 L 600 400 L 0 400 Z' fill='#e2e8f0'/>
+        <circle cx='300' cy='280' r='58' fill='#ffffff'/>
+        <circle cx='300' cy='190' r='40' fill='#ffffff'/>
+        <circle cx='287' cy='182' r='4' fill='#0f172a'/>
+        <circle cx='313' cy='182' r='4' fill='#0f172a'/>
+        <polygon points='300,190 324,195 300,200' fill='#ea580c'/>
+        <rect x='282' y='132' width='36' height='24' fill='#334155'/>
+        <text x='300' y='380' text-anchor='middle' fill='#1e293b' font-family='sans-serif' font-size='18' font-weight='bold'>겨울 첫눈 눈사람 만들기</text>
+      </svg>
+    `);
+
+    let photos = [
+      {
+        id: 'p1',
+        title: '신년 해돋이 여행',
+        date: '2024-01-01',
+        people: ['민우', '서연'],
+        memo: '새해 첫날 동해 바다에서 함께 일출을 보며 한 해 소원을 빌었던 날.',
+        imageUrl: svgPhoto1
+      },
+      {
+        id: 'p2',
+        title: '봄맞이 벚꽃 소풍',
+        date: '2024-03-25',
+        people: ['서연', '지호'],
+        memo: '따뜻한 봄날 피크닉 매트를 펴고 도시락을 먹으며 벚꽃 구경하기.',
+        imageUrl: svgPhoto2
+      },
+      {
+        id: 'p3',
+        title: '초여름 바다 캠핑',
+        date: '2024-07-12',
+        people: ['민우', '도윤'],
+        memo: '시원한 바닷바람 맞으며 텐트 치고 모닥불 피웠던 여름밤의 추억.',
+        imageUrl: svgPhoto3
+      },
+      {
+        id: 'p4',
+        title: '가을 단풍 숲길 산책',
+        date: '2024-10-15',
+        people: ['민우', '서연', '지호'],
+        memo: '울긋불긋 물든 산책로를 걸으며 낙엽을 주워 책갈피를 만들었다.',
+        imageUrl: svgPhoto4
+      },
+      {
+        id: 'p5',
+        title: '겨울 첫눈 눈사람',
+        date: '2024-12-24',
+        people: ['하은', '도윤'],
+        memo: '소복이 쌓인 하얀 눈으로 마당에 커다란 눈사람을 세운 크리스마스 이브.',
+        imageUrl: svgPhoto5
+      }
+    ];
+
+    /* ==========================================================================
+       2. 상태 관리 (필터, 검색어, 정렬 순서)
+       ========================================================================== */
+    let currentSelectedPerson = 'ALL'; // 'ALL' 또는 특정 인물 이름
+    let currentSearchQuery = '';
+    let currentSortOrder = 'asc'; // 'asc': 오래된 순 (과거순), 'desc': 최신순
+
+    // 초기화 실행
+    window.addEventListener('DOMContentLoaded', () => {
+      // 오늘 날짜를 추가 폼의 기본 일자로 설정
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('newPhotoDate').value = today;
+      renderApp();
+    });
+
+    function setSortOrder(order) {
+      currentSortOrder = order;
+      document.getElementById('sortOldestBtn').classList.toggle('active', order === 'asc');
+      document.getElementById('sortNewestBtn').classList.toggle('active', order === 'desc');
+      renderApp();
+      showToast(order === 'asc' ? '⏳ 오래된 순(과거순)으로 정렬되었습니다.' : '⌛ 최신순으로 정렬되었습니다.');
+    }
+
+    function handleSearch(val) {
+      currentSearchQuery = val.trim().toLowerCase();
+      renderApp();
+    }
+
+    function selectPersonFilter(person) {
+      currentSelectedPerson = person;
+      renderApp();
+    }
+
+    /* ==========================================================================
+       3. 렌더링 로직 (인물 칩 + 시간순 타임라인 카드)
+       ========================================================================== */
+    function renderApp() {
+      renderPeopleChips();
+      renderTimeline();
+    }
+
+    // 등록된 모든 고유 인물 추출 및 사진 수 계산
+    function getPeopleCounts() {
+      const counts = {};
+      photos.forEach(p => {
+        p.people.forEach(name => {
+          counts[name] = (counts[name] || 0) + 1;
+        });
+      });
+      return counts;
+    }
+
+    // 인물 칩 목록 렌더링
+    function renderPeopleChips() {
+      const container = document.getElementById('peopleChipsContainer');
+      const counts = getPeopleCounts();
+      const names = Object.keys(counts).sort();
+
+      let html = `
+        <div class="chip ${currentSelectedPerson === 'ALL' ? 'active' : ''}" onclick="selectPersonFilter('ALL')">
+          <span>전체보기</span>
+          <span class="chip-count">${photos.length}</span>
+        </div>
+      `;
+
+      names.forEach(name => {
+        const isActive = currentSelectedPerson === name;
+        html += `
+          <div class="chip ${isActive ? 'active' : ''}" onclick="selectPersonFilter('${name}')">
+            <span>👤 ${name}</span>
+            <span class="chip-count">${counts[name]}</span>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // 필터링 및 정렬된 사진 목록 반환
+    function getFilteredAndSortedPhotos() {
+      return photos.filter(p => {
+        // 1) 인물 필터
+        if (currentSelectedPerson !== 'ALL' && !p.people.includes(currentSelectedPerson)) {
+          return false;
+        }
+        // 2) 검색어 필터 (제목, 메모, 인물명)
+        if (currentSearchQuery) {
+          const matchTitle = p.title.toLowerCase().includes(currentSearchQuery);
+          const matchMemo = p.memo.toLowerCase().includes(currentSearchQuery);
+          const matchPerson = p.people.some(n => n.toLowerCase().includes(currentSearchQuery));
+          if (!matchTitle && !matchMemo && !matchPerson) {
+            return false;
+          }
+        }
+        return true;
+      }).sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return currentSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      });
+    }
+
+    // 타임라인 카드 렌더링 (연/월 기준 그룹화)
+    function renderTimeline() {
+      const container = document.getElementById('timelineContainer');
+      const filtered = getFilteredAndSortedPhotos();
+
+      // 상태 요약 텍스트 갱신
+      const summaryElem = document.getElementById('statusSummary');
+      let summaryText = `총 <strong>${filtered.length}</strong>장의 사진`;
+      if (currentSelectedPerson !== 'ALL') {
+        summaryText += ` (인물: <strong>${currentSelectedPerson}</strong>)`;
+      }
+      if (currentSearchQuery) {
+        summaryText += ` (검색어: "${currentSearchQuery}")`;
+      }
+      summaryElem.innerHTML = summaryText;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">🔍</div>
+            <h3>일치하는 사진이 없습니다</h3>
+            <p>검색어를 변경하거나 다른 인물 필터를 선택해 보세요.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // 연/월별로 그룹화
+      const groups = {};
+      filtered.forEach(p => {
+        const dateObj = new Date(p.date);
+        const groupKey = `${dateObj.getFullYear()}년 ${dateObj.getMonth() + 1}월`;
+        if (!groups[groupKey]) {
+          groups[groupKey] = [];
+        }
+        groups[groupKey].push(p);
+      });
+
+      let html = '';
+      for (const [groupKey, items] of Object.entries(groups)) {
+        html += `
+          <div class="timeline-group">
+            <div class="timeline-header">
+              <span class="timeline-date-badge">📅 ${groupKey} (${items.length}장)</span>
+              <div class="timeline-line"></div>
+            </div>
+            <div class="photo-grid">
+              ${items.map(p => `
+                <div class="photo-card" id="card-${p.id}">
+                  <div class="photo-img-wrap" onclick="openViewModal('${p.id}')">
+                    <img src="${p.imageUrl}" alt="${p.title}" loading="lazy">
+                    <span class="photo-date-overlay">${p.date}</span>
+                  </div>
+                  <div class="photo-card-body">
+                    <h3 class="photo-title">${p.title}</h3>
+                    <p class="photo-memo">${p.memo || '메모 없음'}</p>
+                    <div class="photo-card-footer">
+                      <div class="photo-tags">
+                        ${p.people.map(person => `
+                          <span class="person-tag" onclick="event.stopPropagation(); selectPersonFilter('${person}')">
+                            #${person}
+                          </span>
+                        `).join('')}
+                      </div>
+                      <button class="btn-delete-card" onclick="deletePhoto('${p.id}')" title="사진 삭제">
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    /* ==========================================================================
+       4. 사진 추가 / 삭제 기능
+       ========================================================================== */
+    let tempSelectedFiles = [];
+
+    function openAddModal() {
+      tempSelectedFiles = [];
+      document.getElementById('previewArea').innerHTML = '';
+      document.getElementById('newPhotoTitle').value = '';
+      document.getElementById('newPhotoPeople').value = '';
+      document.getElementById('newPhotoMemo').value = '';
+      document.getElementById('addModal').classList.add('active');
+    }
+
+    function closeAddModal() {
+      document.getElementById('addModal').classList.remove('active');
+    }
+
+    function handleFileSelect(event) {
+      const files = Array.from(event.target.files);
+      if (!files.length) return;
+
+      tempSelectedFiles = files;
+      const previewArea = document.getElementById('previewArea');
+      previewArea.innerHTML = '';
+
+      // 첫 번째 파일의 수정일시를 촬영 일자로 자동 제안
+      const firstFile = files[0];
+      if (firstFile.lastModified) {
+        const fileDate = new Date(firstFile.lastModified).toISOString().split('T')[0];
+        document.getElementById('newPhotoDate').value = fileDate;
+      }
+      if (!document.getElementById('newPhotoTitle').value) {
+        document.getElementById('newPhotoTitle').value = firstFile.name.replace(/\.[^/.]+$/, "");
+      }
+
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.className = 'preview-thumb';
+          previewArea.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function submitNewPhoto() {
+      const title = document.getElementById('newPhotoTitle').value.trim() || '이름 없는 사진';
+      const date = document.getElementById('newPhotoDate').value || new Date().toISOString().split('T')[0];
+      const peopleInput = document.getElementById('newPhotoPeople').value.trim();
+      const memo = document.getElementById('newPhotoMemo').value.trim();
+
+      // 인물 태그 분리 및 정리
+      const people = peopleInput
+        ? peopleInput.split(',').map(s => s.trim()).filter(Boolean)
+        : ['미지정'];
+
+      // 파일이 선택된 경우 읽어서 추가
+      if (tempSelectedFiles.length > 0) {
+        let loadedCount = 0;
+        tempSelectedFiles.forEach((file, index) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            photos.push({
+              id: 'p_' + Date.now() + '_' + index,
+              title: tempSelectedFiles.length > 1 ? `${title} (${index + 1})` : title,
+              date: date,
+              people: [...people],
+              memo: memo,
+              imageUrl: e.target.result
+            });
+            loadedCount++;
+            if (loadedCount === tempSelectedFiles.length) {
+              finishAddPhoto();
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+      } else {
+        // 사진 파일 없이 등록 시 기본 플레이스홀더 생성
+        const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        const customSvg = createSvgDataUrl(`
+          <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' width='100%' height='100%'>
+            <rect width='600' height='400' fill='${randomColor}'/>
+            <text x='300' y='200' text-anchor='middle' fill='#ffffff' font-family='sans-serif' font-size='22' font-weight='bold'>${title}</text>
+            <text x='300' y='240' text-anchor='middle' fill='#ffffff' opacity='0.8' font-family='sans-serif' font-size='16'>${date} / ${people.join(', ')}</text>
+          </svg>
+        `);
+
+        photos.push({
+          id: 'p_' + Date.now(),
+          title: title,
+          date: date,
+          people: people,
+          memo: memo,
+          imageUrl: customSvg
+        });
+        finishAddPhoto();
+      }
+    }
+
+    function finishAddPhoto() {
+      closeAddModal();
+      renderApp();
+      showToast('✅ 새로운 사진이 성공적으로 등록되었습니다!');
+    }
+
+    function deletePhoto(id) {
+      if (!confirm('이 사진을 정리 목록에서 삭제하시겠습니까?')) return;
+      photos = photos.filter(p => p.id !== id);
+      renderApp();
+      showToast('🗑️ 사진이 삭제되었습니다.');
+    }
+
+    /* ==========================================================================
+       5. 사진 확대 뷰어 모달
+       ========================================================================== */
+    function openViewModal(id) {
+      const p = photos.find(item => item.id === id);
+      if (!p) return;
+
+      document.getElementById('viewModalTitle').textContent = p.title;
+      document.getElementById('viewModalImg').src = p.imageUrl;
+      document.getElementById('viewModalDate').textContent = '📅 ' + p.date;
+      document.getElementById('viewModalMemo').textContent = p.memo || '등록된 메모가 없습니다.';
+
+      const tagsContainer = document.getElementById('viewModalTags');
+      tagsContainer.innerHTML = p.people.map(person => `
+        <span class="person-tag">#${person}</span>
+      `).join('');
+
+      document.getElementById('viewModal').classList.add('active');
+    }
+
+    function closeViewModal() {
+      document.getElementById('viewModal').classList.remove('active');
+    }
+
+    /* ==========================================================================
+       6. 가족·지인 사진 수집 화면 (예시 모달)
+       ========================================================================== */
+    function openGroupInviteModal() {
+      document.getElementById('groupInviteModal').classList.add('active');
+    }
+
+    function closeGroupInviteModal() {
+      document.getElementById('groupInviteModal').classList.remove('active');
+    }
+
+    function copyMockLink() {
+      showToast('📋 가상 초대 링크가 복사되었습니다!');
+    }
+
+    function simulateGuestSubmit() {
+      const name = document.getElementById('guestName').value || '지인';
+      showToast(`📢 [예시 동작] ${name} 님의 사진 전송 폼 확인 완료! (공동 저장은 추후 지원)`);
+      setTimeout(() => {
+        closeGroupInviteModal();
+      }, 700);
+    }
+
+    /* ==========================================================================
+       7. 외부 라이브러리 없는 순수 JS ZIP 생성기 (Store 압축 모드)
+       - 외부 CDN 없이 완전히 오프라인 브라우저에서 동작
+       ========================================================================== */
+    function createPureZipBlob(fileEntries) {
+      // CRC-32 테이블 계산
+      const crcTable = [];
+      for (let n = 0; n < 256; n++) {
+        let c = n;
+        for (let k = 0; k < 8; k++) {
+          c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+        }
+        crcTable[n] = c >>> 0;
+      }
+
+      function calcCrc32(buf) {
+        let crc = 0 ^ (-1);
+        for (let i = 0; i < buf.length; i++) {
+          crc = (crc >>> 8) ^ crcTable[(crc ^ buf[i]) & 0xFF];
+        }
+        return (crc ^ (-1)) >>> 0;
+      }
+
+      const fileHeaders = [];
+      let currentOffset = 0;
+      const chunks = [];
+
+      for (const file of fileEntries) {
+        const nameBytes = new TextEncoder().encode(file.name);
+        const dataBytes = file.data;
+        const crc = calcCrc32(dataBytes);
+        const size = dataBytes.length;
+
+        // Local file header (30 bytes + name length)
+        const localHeader = new Uint8Array(30 + nameBytes.length);
+        const lv = new DataView(localHeader.buffer);
+        lv.setUint32(0, 0x04034b50, true); // Local header signature
+        lv.setUint16(4, 20, true);         // Version needed
+        lv.setUint16(6, 0, true);          // Flags
+        lv.setUint16(8, 0, true);          // Compression: 0 (Store)
+        lv.setUint16(10, 0, true);         // Mod time
+        lv.setUint16(12, 0, true);         // Mod date
+        lv.setUint32(14, crc, true);        // CRC-32
+        lv.setUint32(18, size, true);       // Compressed size
+        lv.setUint32(22, size, true);       // Uncompressed size
+        lv.setUint16(26, nameBytes.length, true); // Name length
+        lv.setUint16(28, 0, true);         // Extra field length
+        localHeader.set(nameBytes, 30);
+
+        chunks.push(localHeader);
+        chunks.push(dataBytes);
+
+        fileHeaders.push({
+          nameBytes,
+          crc,
+          size,
+          offset: currentOffset
+        });
+
+        currentOffset += localHeader.length + dataBytes.length;
+      }
+
+      const centralDirOffset = currentOffset;
+      let centralDirSize = 0;
+
+      for (const f of fileHeaders) {
+        // Central directory header (46 bytes + name length)
+        const cdHeader = new Uint8Array(46 + f.nameBytes.length);
+        const cv = new DataView(cdHeader.buffer);
+        cv.setUint32(0, 0x02014b50, true); // Central header signature
+        cv.setUint16(4, 20, true);         // Version made by
+        cv.setUint16(6, 20, true);         // Version needed
+        cv.setUint16(8, 0, true);          // Flags
+        cv.setUint16(10, 0, true);         // Compression: 0
+        cv.setUint16(12, 0, true);         // Mod time
+        cv.setUint16(14, 0, true);         // Mod date
+        cv.setUint32(16, f.crc, true);     // CRC-32
+        cv.setUint32(20, f.size, true);    // Compressed size
+        cv.setUint32(24, f.size, true);    // Uncompressed size
+        cv.setUint16(28, f.nameBytes.length, true); // Name length
+        cv.setUint16(30, 0, true);         // Extra length
+        cv.setUint16(32, 0, true);         // Comment length
+        cv.setUint16(34, 0, true);         // Disk start
+        cv.setUint16(36, 0, true);         // Internal attr
+        cv.setUint32(38, 0, true);         // External attr
+        cv.setUint32(42, f.offset, true);   // Relative offset
+        cdHeader.set(f.nameBytes, 46);
+
+        chunks.push(cdHeader);
+        centralDirSize += cdHeader.length;
+      }
+
+      // End of central directory record (22 bytes)
+      const eocd = new Uint8Array(22);
+      const ev = new DataView(eocd.buffer);
+      ev.setUint32(0, 0x06054b50, true); // EOCD signature
+      ev.setUint16(4, 0, true);          // Disk number
+      ev.setUint16(6, 0, true);          // Disk with CD
+      ev.setUint16(8, fileHeaders.length, true);  // Disk entries
+      ev.setUint16(10, fileHeaders.length, true); // Total entries
+      ev.setUint32(12, centralDirSize, true);     // CD size
+      ev.setUint32(16, centralDirOffset, true);  // CD offset
+      ev.setUint16(20, 0, true);         // Comment length
+
+      chunks.push(eocd);
+
+      return new Blob(chunks, { type: 'application/zip' });
+    }
+
+    // Data URL을 바이너리 Uint8Array로 변환
+    function dataUrlToBytes(dataUrl) {
+      if (dataUrl.startsWith('data:image/svg+xml')) {
+        const comma = dataUrl.indexOf(',');
+        const text = decodeURIComponent(dataUrl.slice(comma + 1));
+        return new TextEncoder().encode(text);
+      }
+      const comma = dataUrl.indexOf(',');
+      const base64 = dataUrl.slice(comma + 1);
+      const binary = atob(base64);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes;
+    }
+
+    // 선택된 인물(또는 전체) 사진 묶음 다운로드
+    function downloadSelectedZip() {
+      const items = getFilteredAndSortedPhotos();
+      if (items.length === 0) {
+        alert('다운로드할 사진이 없습니다.');
+        return;
+      }
+
+      const personLabel = currentSelectedPerson === 'ALL' ? '전체인물' : currentSelectedPerson;
+      const fileEntries = [];
+
+      items.forEach((p, idx) => {
+        const ext = p.imageUrl.startsWith('data:image/svg+xml') ? 'svg' : 'png';
+        const sanitizedTitle = p.title.replace(/[^a-zA-Z0-9가-힣_-]/g, '_');
+        const filename = `${p.date}_${sanitizedTitle}_(${p.people.join('-')}).${ext}`;
+        fileEntries.push({
+          name: filename,
+          data: dataUrlToBytes(p.imageUrl)
+        });
+      });
+
+      // 안내 텍스트 파일(README.txt)도 함께 ZIP에 포함
+      const readmeContent = [
+        `===========================================`,
+        `포토 타임라인 - 인물별 사진 정리 결과`,
+        `===========================================`,
+        `다운로드 일시: ${new Date().toLocaleString()}`,
+        `정리 인물: ${personLabel}`,
+        `정렬 기준: ${currentSortOrder === 'asc' ? '과거순 (오래된 순)' : '최신순'}`,
+        `사진 개수: 총 ${items.length}장`,
+        ``,
+        `[정리된 사진 목록]`,
+        ...items.map((it, i) => `${i+1}. [${it.date}] ${it.title} (인물: ${it.people.join(', ')}) - ${it.memo}`)
+      ].join('\r\n');
+
+      fileEntries.push({
+        name: `00_정리목록_안내_${personLabel}.txt`,
+        data: new TextEncoder().encode(readmeContent)
+      });
+
+      const zipBlob = createPureZipBlob(fileEntries);
+      const downloadUrl = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `${personLabel}_사진정리_${items.length}장.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(downloadUrl);
+
+      showToast(`📦 '${personLabel}' 사진 묶음(${items.length}장) ZIP 다운로드 완료!`);
+    }
+
+    // 정리 결과 메타데이터 JSON 다운로드
+    function exportDataJson() {
+      const items = getFilteredAndSortedPhotos();
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        selectedPerson: currentSelectedPerson,
+        sortOrder: currentSortOrder,
+        totalCount: items.length,
+        photos: items.map(p => ({
+          id: p.id,
+          title: p.title,
+          date: p.date,
+          people: p.people,
+          memo: p.memo
+        }))
+      };
+
+      const jsonStr = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `사진정리결과_${currentSelectedPerson}_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast('💾 정리 결과 JSON 파일이 다운로드되었습니다.');
+    }
+
+    /* ==========================================================================
+       8. 편의 유틸 (토스트 알림)
+       ========================================================================== */
+    let toastTimer = null;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2600);
+    }
+  </script>
+</body>
+</html>
